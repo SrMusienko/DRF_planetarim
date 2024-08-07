@@ -5,7 +5,7 @@ from planetarium.models import ShowTheme, AstronomyShow, PlanetariumDome
 from planetarium.serializers import (
     ShowThemeSerializer,
     AstronomyShowSerializer,
-    PlanetariumDomeSerializer
+    PlanetariumDomeSerializer,
 )
 
 

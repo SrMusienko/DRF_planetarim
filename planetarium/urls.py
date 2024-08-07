@@ -4,7 +4,7 @@ from rest_framework import routers
 from planetarium.views import (
     ShowThemeViewSet,
     AstronomyShowViewSet,
-    PlanetariumDomeViewSet
+    PlanetariumDomeViewSet,
 )
 
 app_name = "planetarium"
