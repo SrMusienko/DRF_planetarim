@@ -33,18 +33,18 @@ urlpatterns = [
     path("token/", CreateTokenView.as_view(), name="token"),
     path("me/", ManageUserView.as_view(), name="manage"),
     path(
-        "jws_token/",
+        "jwt_token/",
         jwt_views.TokenObtainPairView.as_view(),
-        name="jws_token_obtain_pair",
+        name="jwt_token_obtain_pair",
     ),
     path(
-        "jws_token/refresh/",
+        "jwt_token/refresh/",
         jwt_views.TokenRefreshView.as_view(),
-        name="jws_token_refresh",
+        name="jwt_token_refresh",
     ),
     path(
-        "jws_token/verify/",
+        "jwt_token/verify/",
         jwt_views.TokenVerifyView.as_view(),
-        name="jws_token_verify",
+        name="jwt_token_verify",
     ),
 ]
