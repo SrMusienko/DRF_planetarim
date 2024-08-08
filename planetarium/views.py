@@ -1,16 +1,17 @@
 from django.db.models import F, Count
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.viewsets import GenericViewSet
 
 from planetarium.filters import AstronomyShowFilter
-from planetarium.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession
+from planetarium.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession, Reservation
 from planetarium.serializers import (
     ShowThemeSerializer,
     AstronomyShowSerializer,
     PlanetariumDomeSerializer,
     ShowSessionSerializer, AstronomyShowListSerializer, AstronomyShowDetailSerializer, ShowSessionListSerializer,
-    ShowSessionDetailSerializer,
+    ShowSessionDetailSerializer, ReservationSerializer, ReservationListSerializer,
 )
 
 
@@ -73,3 +74,29 @@ class ShowSessionViewSet(viewsets.ModelViewSet):
             return ShowSessionDetailSerializer
 
         return ShowSessionSerializer
+
+
+class ReservationViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    GenericViewSet,
+):
+    queryset = Reservation.objects.prefetch_related(
+        "tickets__show_session__astronomy_show",
+        "tickets__show_session__planetarium_dome"
+    )
+    serializer_class = ReservationSerializer
+
+    def get_queryset(self):
+        if self.request.user.is_anonymous:
+            raise PermissionDenied("User must be authenticated to access this resource.")
+        return Reservation.objects.filter(user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ReservationListSerializer
+
+        return ReservationSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
