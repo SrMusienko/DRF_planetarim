@@ -21,7 +21,7 @@ class ShowThemeViewSet(
     mixins.ListModelMixin,
     GenericViewSet,
 ):
-    queryset = ShowTheme.objects.all()
+    queryset = ShowTheme.objects.order_by('id')
     serializer_class = ShowThemeSerializer
 
 
@@ -31,7 +31,7 @@ class AstronomyShowViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
-    queryset = AstronomyShow.objects.all()
+    queryset = AstronomyShow.objects.order_by('id')
     serializer_class = AstronomyShowSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = AstronomyShowFilter
@@ -50,13 +50,13 @@ class PlanetariumDomeViewSet(
     mixins.ListModelMixin,
     GenericViewSet,
 ):
-    queryset = PlanetariumDome.objects.all()
+    queryset = PlanetariumDome.objects.order_by('id')
     serializer_class = PlanetariumDomeSerializer
 
 
 class ShowSessionViewSet(viewsets.ModelViewSet):
     queryset = (
-        ShowSession.objects.all()
+        ShowSession.objects.order_by('id')
         .select_related("astronomy_show", "planetarium_dome")
         .annotate(
             tickets_available=(
