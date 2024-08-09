@@ -1,5 +1,5 @@
 import django_filters
-from planetarium.models import AstronomyShow
+from planetarium.models import AstronomyShow, ShowSession
 
 
 class AstronomyShowFilter(django_filters.FilterSet):
@@ -9,3 +9,15 @@ class AstronomyShowFilter(django_filters.FilterSet):
     class Meta:
         model = AstronomyShow
         fields = ["title", "description"]
+
+
+class ShowSessionFilter(django_filters.FilterSet):
+    show_time_start = django_filters.DateTimeFilter(field_name='show_time', lookup_expr='gte')
+    show_time_end = django_filters.DateTimeFilter(field_name='show_time', lookup_expr='lte')
+    astronomy_show_title = django_filters.CharFilter(
+        field_name='astronomy_show__title', lookup_expr='icontains'
+    )
+
+    class Meta:
+        model = ShowSession
+        fields = ['show_time_start', 'show_time_end', 'astronomy_show_title']

@@ -5,7 +5,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import GenericViewSet
 
-from planetarium.filters import AstronomyShowFilter
+from planetarium.filters import AstronomyShowFilter, ShowSessionFilter
 from planetarium.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession, Reservation
 from planetarium.serializers import (
     ShowThemeSerializer,
@@ -56,7 +56,7 @@ class PlanetariumDomeViewSet(
 
 class ShowSessionViewSet(viewsets.ModelViewSet):
     queryset = (
-        ShowSession.objects.order_by('id')
+        ShowSession.objects.order_by("id")
         .select_related("astronomy_show", "planetarium_dome")
         .annotate(
             tickets_available=(
@@ -66,6 +66,8 @@ class ShowSessionViewSet(viewsets.ModelViewSet):
         )
     )
     serializer_class = ShowSessionSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = ShowSessionFilter
 
     def get_serializer_class(self):
         if self.action == "list":

@@ -60,15 +60,15 @@ class ShowSessionSerializer(serializers.ModelSerializer):
 
 class ShowSessionListSerializer(ShowSessionSerializer):
     astronomy_show_title = serializers.CharField(
-        source="AstronomyShow.title",
+        source="astronomy_show.title",
         read_only=True
     )
     planetarium_dome_name = serializers.CharField(
-        source="PlanetariumDome.name",
+        source="planetarium_dome.name",
         read_only=True
     )
     planetarium_dome_capacity = serializers.IntegerField(
-        source="PlanetariumDome.capacity",
+        source="planetarium_dome.capacity",
         read_only=True
     )
     tickets_available = serializers.IntegerField(read_only=True)
