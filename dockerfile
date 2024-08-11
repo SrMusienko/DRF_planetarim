@@ -9,8 +9,6 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-RUN mkdir -p /files/media
-
 RUN adduser \
     --disabled-password \
     --no-create-home \
