@@ -1,6 +1,3 @@
-import os
-import tempfile
-
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -8,9 +5,15 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
 from planetarium.models import (
-    ShowTheme, AstronomyShow, PlanetariumDome, ShowSession,
+    ShowTheme,
+    AstronomyShow,
+    PlanetariumDome,
+    ShowSession,
 )
-from planetarium.serializers import ShowThemeSerializer, AstronomyShowListSerializer, AstronomyShowDetailSerializer
+from planetarium.serializers import (
+    AstronomyShowListSerializer,
+    AstronomyShowDetailSerializer,
+)
 
 ASTRONOMY_SHOW_URL = reverse("planetarium:astronomy_show-list")
 SHOW_SESSION_URL = reverse("planetarium:show_session-list")
@@ -54,7 +57,7 @@ def detail_url(astronomy_show_id):
     return reverse("planetarium:astronomy_show-detail", args=[astronomy_show_id])
 
 
-class UnauthenticatedMovieApiTest(TestCase):
+class UnauthenticatedAstronomyShowApiTest(TestCase):
     def setUp(self):
         self.client = APIClient()
 
@@ -63,7 +66,7 @@ class UnauthenticatedMovieApiTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class AuthenticatedMovieApiTests(TestCase):
+class AuthenticatedAstronomyShowApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
@@ -72,71 +75,58 @@ class AuthenticatedMovieApiTests(TestCase):
         self.client.force_authenticate(self.user)
 
     def test_astronomy_show_list(self):
-        # Создание тестовых данных
         astronomy_show_with_theme = sample_astronomy_show()
         astronomy_show_with_theme.show_theme.add(sample_show_theme())
-
-        # Выполнение запроса
         response = self.client.get(ASTRONOMY_SHOW_URL)
 
-        # Получение данных из базы данных
         astronomy_shows = AstronomyShow.objects.all()
         serializer = AstronomyShowListSerializer(astronomy_shows, many=True)
 
-        # Ожидаемые данные
         expected_data = {
-            'count': astronomy_shows.count(),
-            'next': None,
-            'previous': None,
-            'results': serializer.data
+            "count": astronomy_shows.count(),
+            "next": None,
+            "previous": None,
+            "results": serializer.data,
         }
-
-        # Сравнение фактического и ожидаемого ответа
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, expected_data)
 
     def test_filter_by_title(self):
         astronomy_show = sample_astronomy_show(title="Test")
-        response = self.client.get(
-            ASTRONOMY_SHOW_URL,
-            {"title": astronomy_show.title}
-        )
+        response = self.client.get(ASTRONOMY_SHOW_URL, {"title": astronomy_show.title})
 
         astronomy_shows = AstronomyShow.objects.filter(title=astronomy_show.title)
         serializer = AstronomyShowListSerializer(astronomy_shows, many=True)
 
         expected_data = {
-            'count': astronomy_shows.count(),
-            'next': None,
-            'previous': None,
-            'results': serializer.data
+            "count": astronomy_shows.count(),
+            "next": None,
+            "previous": None,
+            "results": serializer.data,
         }
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, expected_data)
 
-    def test_filter_by_actor_and_genre(self):
+    def test_filter_by_theme(self):
         astronomy_show = sample_astronomy_show(title="Test")
         theme = sample_show_theme(name="Art")
         astronomy_show.show_theme.add(theme)
-        response = self.client.get(
-            ASTRONOMY_SHOW_URL,
-            {"show theme": f"{theme.id}"}
-        )
+        response = self.client.get(ASTRONOMY_SHOW_URL, {"show theme": f"{theme.id}"})
         astronomy_shows = AstronomyShow.objects.filter(
             show_theme__id=theme.id,
         )
         serializer = AstronomyShowListSerializer(astronomy_shows, many=True)
         expected_data = {
-            'count': astronomy_shows.count(),
-            'next': None,
-            'previous': None,
-            'results': serializer.data
+            "count": astronomy_shows.count(),
+            "next": None,
+            "previous": None,
+            "results": serializer.data,
         }
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, expected_data)
 
-    def test_retrieve_movie_detail(self):
+    def test_retrieve_astronomy_show_detail(self):
         astronomy_show = sample_astronomy_show()
         astronomy_show.show_theme.add(ShowTheme.objects.create(name="Test theme"))
         url = detail_url(astronomy_show.id)
@@ -147,7 +137,7 @@ class AuthenticatedMovieApiTests(TestCase):
         self.assertEqual(response.data, serializer.data)
 
 
-class AdminMovieTests(APITestCase):
+class AdminAstronomyShowTests(APITestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
@@ -155,16 +145,7 @@ class AdminMovieTests(APITestCase):
         )
         self.client.force_authenticate(self.user)
 
-    # def test_create_show_session_forbidden(self):
-    #     payload = {
-    #         "title": "Titanic",
-    #         "duration": 195
-    #     }
-    #
-    #     response = self.client.post(ASTRONOMY_SHOW_URL, payload)
-
-    #    self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-    def test_create_movie_with_genres_and_actors(self):
+    def test_create_astronomy_show_with(self):
         theme_1 = ShowTheme.objects.create(name="Theme1")
         theme_2 = ShowTheme.objects.create(name="Theme2")
 
@@ -180,7 +161,4 @@ class AdminMovieTests(APITestCase):
         astronomy_show = sample_astronomy_show()
         url = detail_url(astronomy_show.id)
         response = self.client.delete(url)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_405_METHOD_NOT_ALLOWED
-        )
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
