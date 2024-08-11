@@ -2,7 +2,14 @@ from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from planetarium.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession, Ticket, Reservation
+from planetarium.models import (
+    AstronomyShow,
+    PlanetariumDome,
+    Reservation,
+    ShowSession,
+    ShowTheme,
+    Ticket,
+)
 
 
 class ShowThemeSerializer(serializers.ModelSerializer):
@@ -25,12 +32,7 @@ class AstronomyShowListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AstronomyShow
-        fields = (
-            "id",
-            "title",
-            "description",
-            "show_theme"
-        )
+        fields = ("id", "title", "description", "show_theme")
 
 
 class AstronomyShowDetailSerializer(serializers.ModelSerializer):
@@ -38,12 +40,7 @@ class AstronomyShowDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AstronomyShow
-        fields = (
-            "id",
-            "title",
-            "description",
-            "show_theme"
-        )
+        fields = ("id", "title", "description", "show_theme")
 
 
 class PlanetariumDomeSerializer(serializers.ModelSerializer):
@@ -60,16 +57,13 @@ class ShowSessionSerializer(serializers.ModelSerializer):
 
 class ShowSessionListSerializer(ShowSessionSerializer):
     astronomy_show_title = serializers.CharField(
-        source="astronomy_show.title",
-        read_only=True
+        source="astronomy_show.title", read_only=True
     )
     planetarium_dome_name = serializers.CharField(
-        source="planetarium_dome.name",
-        read_only=True
+        source="planetarium_dome.name", read_only=True
     )
     planetarium_dome_capacity = serializers.IntegerField(
-        source="planetarium_dome.capacity",
-        read_only=True
+        source="planetarium_dome.capacity", read_only=True
     )
     tickets_available = serializers.IntegerField(read_only=True)
 
@@ -92,7 +86,7 @@ class TicketSerializer(serializers.ModelSerializer):
             attrs["row"],
             attrs["seat"],
             attrs["show_session"].planetarium_dome,
-            ValidationError
+            ValidationError,
         )
         return data
 
@@ -114,13 +108,17 @@ class TicketSeatsSerializer(TicketSerializer):
 class ShowSessionDetailSerializer(ShowSessionSerializer):
     astronomy_show = AstronomyShowListSerializer(many=False, read_only=True)
     planetarium_dome = PlanetariumDomeSerializer(many=False, read_only=True)
-    taken_places = TicketSeatsSerializer(
-        source="tickets", many=True, read_only=True
-    )
+    taken_places = TicketSeatsSerializer(source="tickets", many=True, read_only=True)
 
     class Meta:
         model = ShowSession
-        fields = ("id", "show_time", "astronomy_show", "planetarium_dome", "taken_places")
+        fields = (
+            "id",
+            "show_time",
+            "astronomy_show",
+            "planetarium_dome",
+            "taken_places",
+        )
 
 
 class ReservationSerializer(serializers.ModelSerializer):

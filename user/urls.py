@@ -1,8 +1,12 @@
-from user.views import CreateUserView, ManageUserView, CreateTokenView
-from rest_framework_simplejwt import views as jwt_views
 from django.http import JsonResponse
-from django.urls import path
-from django.urls import reverse
+from django.urls import path, reverse
+from rest_framework_simplejwt import views as jwt_views
+
+from user.views import (
+    CreateTokenView,
+    CreateUserView,
+    ManageUserView,
+)
 
 
 def api_root(request):

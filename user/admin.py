@@ -5,7 +5,6 @@ from django.utils.translation import gettext as _
 
 from user.models import User
 
-
 admin.site.unregister(Group)
 
 

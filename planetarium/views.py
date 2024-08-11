@@ -1,4 +1,4 @@
-from django.db.models import F, Count
+from django.db.models import Count, F
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, viewsets
 from rest_framework.exceptions import PermissionDenied
@@ -6,13 +6,24 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import GenericViewSet
 
 from planetarium.filters import AstronomyShowFilter, ShowSessionFilter
-from planetarium.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession, Reservation
+from planetarium.models import (
+    AstronomyShow,
+    PlanetariumDome,
+    Reservation,
+    ShowSession,
+    ShowTheme,
+)
 from planetarium.serializers import (
-    ShowThemeSerializer,
+    AstronomyShowDetailSerializer,
+    AstronomyShowListSerializer,
     AstronomyShowSerializer,
     PlanetariumDomeSerializer,
-    ShowSessionSerializer, AstronomyShowListSerializer, AstronomyShowDetailSerializer, ShowSessionListSerializer,
-    ShowSessionDetailSerializer, ReservationSerializer, ReservationListSerializer,
+    ReservationListSerializer,
+    ReservationSerializer,
+    ShowSessionDetailSerializer,
+    ShowSessionListSerializer,
+    ShowSessionSerializer,
+    ShowThemeSerializer,
 )
 
 
@@ -21,7 +32,7 @@ class ShowThemeViewSet(
     mixins.ListModelMixin,
     GenericViewSet,
 ):
-    queryset = ShowTheme.objects.order_by('id')
+    queryset = ShowTheme.objects.order_by("id")
     serializer_class = ShowThemeSerializer
 
 
@@ -31,7 +42,7 @@ class AstronomyShowViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
-    queryset = AstronomyShow.objects.order_by('id')
+    queryset = AstronomyShow.objects.order_by("id")
     serializer_class = AstronomyShowSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = AstronomyShowFilter
@@ -50,7 +61,7 @@ class PlanetariumDomeViewSet(
     mixins.ListModelMixin,
     GenericViewSet,
 ):
-    queryset = PlanetariumDome.objects.order_by('id')
+    queryset = PlanetariumDome.objects.order_by("id")
     serializer_class = PlanetariumDomeSerializer
 
 
@@ -92,14 +103,16 @@ class ReservationViewSet(
 ):
     queryset = Reservation.objects.prefetch_related(
         "tickets__show_session__astronomy_show",
-        "tickets__show_session__planetarium_dome"
+        "tickets__show_session__planetarium_dome",
     )
     serializer_class = ReservationSerializer
     pagination_class = ReservationPagination
 
     def get_queryset(self):
         if self.request.user.is_anonymous:
-            raise PermissionDenied("User must be authenticated to access this resource.")
+            raise PermissionDenied(
+                "User must be authenticated to access this resource."
+            )
         return Reservation.objects.filter(user=self.request.user)
 
     def get_serializer_class(self):
