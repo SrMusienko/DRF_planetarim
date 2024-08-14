@@ -1,0 +1,125 @@
+from django.db.models import Count, F
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import mixins, viewsets
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.viewsets import GenericViewSet
+
+from planetarium.filters import AstronomyShowFilter, ShowSessionFilter
+from planetarium.models import (
+    AstronomyShow,
+    PlanetariumDome,
+    Reservation,
+    ShowSession,
+    ShowTheme,
+)
+from planetarium.serializers import (
+    AstronomyShowDetailSerializer,
+    AstronomyShowListSerializer,
+    AstronomyShowSerializer,
+    PlanetariumDomeSerializer,
+    ReservationListSerializer,
+    ReservationSerializer,
+    ShowSessionDetailSerializer,
+    ShowSessionListSerializer,
+    ShowSessionSerializer,
+    ShowThemeSerializer,
+)
+
+
+class ShowThemeViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
+    queryset = ShowTheme.objects.order_by("id")
+    serializer_class = ShowThemeSerializer
+
+
+class AstronomyShowViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+):
+    queryset = AstronomyShow.objects.order_by("id")
+    serializer_class = AstronomyShowSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = AstronomyShowFilter
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return AstronomyShowListSerializer
+
+        if self.action == "retrieve":
+            return AstronomyShowDetailSerializer
+        return AstronomyShowSerializer
+
+
+class PlanetariumDomeViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
+    queryset = PlanetariumDome.objects.order_by("id")
+    serializer_class = PlanetariumDomeSerializer
+
+
+class ShowSessionViewSet(viewsets.ModelViewSet):
+    queryset = (
+        ShowSession.objects.order_by("id")
+        .select_related("astronomy_show", "planetarium_dome")
+        .annotate(
+            tickets_available=(
+                F("planetarium_dome__rows") * F("planetarium_dome__seats_in_row")
+                - Count("tickets")
+            )
+        )
+    )
+    serializer_class = ShowSessionSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = ShowSessionFilter
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ShowSessionListSerializer
+
+        if self.action == "retrieve":
+            return ShowSessionDetailSerializer
+
+        return ShowSessionSerializer
+
+
+class ReservationPagination(PageNumberPagination):
+    page_size = 5
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+
+class ReservationViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    GenericViewSet,
+):
+    queryset = Reservation.objects.prefetch_related(
+        "tickets__show_session__astronomy_show",
+        "tickets__show_session__planetarium_dome",
+    )
+    serializer_class = ReservationSerializer
+    pagination_class = ReservationPagination
+
+    def get_queryset(self):
+        if self.request.user.is_anonymous:
+            raise PermissionDenied(
+                "User must be authenticated to access this resource."
+            )
+        return Reservation.objects.filter(user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ReservationListSerializer
+
+        return ReservationSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
